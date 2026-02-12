@@ -1,17 +1,35 @@
 on: [push]
 
 name: CI
+permissions:
+  contents: read
 
 jobs:
   build:
-    name: Rust project
+    name: Build, test and upload artifact
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v6
+    
+      - name: Cache
+        uses: actions/cache@v4
         with:
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Run lint
+        run: cargo clippy --release
+      - name: Run fmt check
+        run: cargo fmt --check
+      - name: Build binaries
+        run: cargo build --release
+      - name: Run tests
+        run: cargo test --release
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v6
         with:
-          command: build
-          args: --release
+          name: sparoid
+          path: target/release/sparoid
