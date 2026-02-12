@@ -1,8 +1,8 @@
 [package]
 name = "sparoid-rs"
-version = "0.1.0"
-edition = "2018"
-authors = ["Magnus Landerblom <mange@84codes.com>"]
+version = "0.2.0"
+edition = "2024"
+authors = ["Magnus Landerblom <mange@84codes.com>", "Anton Dalgren <anton@84codes.com>"]
 description = "sparoid client"
 repository = "https://github.com/84codes/sparoid-rs"
 license = "MIT"
@@ -10,7 +10,6 @@ license = "MIT"
 [dependencies]
 aes = "0.7.5"
 block-modes = "0.8.1"
-dnsclient = "0.1.15"
 clap = { version = "4.3.23", features = ["derive"] }
 hex = "0.4.3"
 hmac = "0.11.0"
@@ -19,6 +18,10 @@ rust-ini = "0.17.0"
 sha2 = "0.9.8"
 shellexpand = "2.1.0"
 tokio = { version = "1.43.1", features = ["net", "macros", "rt-multi-thread"] }
+reqwest = "0.13.1"
+futures = "0.3.31"
+if-addrs = "0.15.0"
+nix = {version = "0.31.1", features = ["socket", "uio"] }
 
 [lib]
 name = "sparoid"
