@@ -1,7 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 use ini::Ini;
 use nix::sys::socket::{ControlMessage, MsgFlags, sendmsg};
-use sparoid::{Message, MessageV1, MessageV2, public_ipv6_with_range};
+use sparoid::{Message, MessageV2, public_ipv6_with_range};
 use std::{
     fmt::Debug,
     io::IoSlice,
@@ -119,6 +119,13 @@ async fn send(config: HostConfig, key: &[u8; 32], hmac_key: &[u8; 32]) -> Vec<So
         };
 
         let mut messages = Vec::new();
+
+        for ip in &my_ips {
+            if ip.is_ipv4() {
+                messages.push(Message::V2(MessageV2::new(*ip)));
+            }
+        }
+
         for ip in &global_ipv6s {
             messages.push(Message::V2(
                 MessageV2::new(IpAddr::V6(ip.ip)).with_range(ip.range),
@@ -126,21 +133,13 @@ async fn send(config: HostConfig, key: &[u8; 32], hmac_key: &[u8; 32]) -> Vec<So
             ipv6_added = true;
         }
 
-        socket.connect(addr).await.unwrap();
-
         for ip in &my_ips {
-            if let IpAddr::V4(v4) = ip {
-                messages.push(Message::V1(MessageV1::new(*v4)));
+            if ip.is_ipv6() && !ipv6_added {
+                messages.push(Message::V2(MessageV2::new(*ip)));
             }
-
-            if let IpAddr::V6(_v6) = ip
-                && ipv6_added
-            {
-                continue;
-            }
-
-            messages.push(Message::V2(MessageV2::new(*ip)));
         }
+
+        socket.connect(addr).await.unwrap();
 
         for message in messages {
             let package = sparoid::new(key, hmac_key, &message);
